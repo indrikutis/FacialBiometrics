@@ -12,7 +12,7 @@ import dlib
 import os
 import argparse
 from PIL import Image
-
+import random
 
 def extract_relative_paths(imgs, dataset_name):
     relative_paths = []
@@ -86,19 +86,26 @@ def detect_face(image_paths,  SAVE_DETECTED_AT, default_max_size=800,size = 300,
 
             dlib.save_image(image, face_name)
 
-def predidct_age_gender_race(save_prediction_at, imgs, dataset_name, imgs_path = 'cropped_faces/'):
+def predidct_age_gender_race(save_prediction_at, imgs, image_sampling_rate, dataset_name, imgs_path = 'cropped_faces/'):
+
+    # Determine the number of images to sample based on the rate
+    num_images_to_sample = int(len(imgs) * image_sampling_rate)
+
+    # Randomly select images to analyze
+    sampled_images = random.sample(imgs, num_images_to_sample)
+
     img_names = [os.path.join(imgs_path, x) for x in os.listdir(imgs_path)]
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     model_fair_7 = torchvision.models.resnet34(pretrained=True)
     model_fair_7.fc = nn.Linear(model_fair_7.fc.in_features, 18)
-    model_fair_7.load_state_dict(torch.load("models/res34_fair_align_multi_7_20190809.pt", map_location=device))   #('fair_face_models/fairface_alldata_20191111.pt'))
+    model_fair_7.load_state_dict(torch.load("res34_models/res34_fair_align_multi_7_20190809.pt", map_location=device))   #('fair_face_models/fairface_alldata_20191111.pt'))
     model_fair_7 = model_fair_7.to(device)
     model_fair_7.eval()
 
     model_fair_4 = torchvision.models.resnet34(pretrained=True)
     model_fair_4.fc = nn.Linear(model_fair_4.fc.in_features, 18)
-    model_fair_4.load_state_dict(torch.load("models/res34_fair_align_multi_4_20190809.pt", map_location=device))   #('fair_face_models/fairface_alldata_4race_20191111.pt'))
+    model_fair_4.load_state_dict(torch.load("res34_models/res34_fair_align_multi_4_20190809.pt", map_location=device))   #('fair_face_models/fairface_alldata_4race_20191111.pt'))
     model_fair_4 = model_fair_4.to(device)
     model_fair_4.eval()
 
@@ -116,7 +123,7 @@ def predidct_age_gender_race(save_prediction_at, imgs, dataset_name, imgs_path =
     race_scores_fair = []
     gender_scores_fair = []
     age_scores_fair = []
-    race_preds_fair = []
+    race_preds_fair_7 = []
     gender_preds_fair = []
     age_preds_fair = []
     race_scores_fair_4 = []
@@ -174,7 +181,7 @@ def predidct_age_gender_race(save_prediction_at, imgs, dataset_name, imgs_path =
         gender_scores_fair.append(gender_score)
         age_scores_fair.append(age_score)
 
-        race_preds_fair.append(race_pred)
+        race_preds_fair_7.append(race_pred)
         gender_preds_fair.append(gender_pred)
         age_preds_fair.append(age_pred)
 
@@ -202,11 +209,11 @@ def predidct_age_gender_race(save_prediction_at, imgs, dataset_name, imgs_path =
         'dataset_name': dataset_name,
         'image_name': original_img_names,
         'face_name_align': face_names,
-        'race_preds_fair': race_preds_fair,
+        'race_preds_fair_7': race_preds_fair_7,
         'race_preds_fair_4': race_preds_fair_4,
         'gender_preds_fair': gender_preds_fair,
         'age_preds_fair': age_preds_fair,
-        'race_scores_fair': race_scores_fair,
+        'race_scores_fair_7': race_scores_fair,
         'race_scores_fair_4': race_scores_fair_4,
         'gender_scores_fair': gender_scores_fair,
         'age_scores_fair': age_scores_fair
@@ -216,26 +223,26 @@ def predidct_age_gender_race(save_prediction_at, imgs, dataset_name, imgs_path =
                       'dataset_name',
                       'image_name',
                       'face_name_align',
-                      'race_preds_fair',
+                      'race_preds_fair_7',
                       'race_preds_fair_4',
                       'gender_preds_fair',
                       'age_preds_fair',
-                      'race_scores_fair',
+                      'race_scores_fair_7',
                       'race_scores_fair_4',
                       'gender_scores_fair',
                       'age_scores_fair']
     
     # Check if 'race' column exists, create if not
-    if 'race' not in result.columns:
-        result['race'] = ''
+    if 'race7' not in result.columns:
+        result['race7'] = ''
 
-    result.loc[result['race_preds_fair'] == 0, 'race'] = 'White'
-    result.loc[result['race_preds_fair'] == 1, 'race'] = 'Black'
-    result.loc[result['race_preds_fair'] == 2, 'race'] = 'Latino_Hispanic'
-    result.loc[result['race_preds_fair'] == 3, 'race'] = 'East Asian'
-    result.loc[result['race_preds_fair'] == 4, 'race'] = 'Southeast Asian'
-    result.loc[result['race_preds_fair'] == 5, 'race'] = 'Indian'
-    result.loc[result['race_preds_fair'] == 6, 'race'] = 'Middle Eastern'
+    result.loc[result['race_preds_fair_7'] == 0, 'race7'] = 'White'
+    result.loc[result['race_preds_fair_7'] == 1, 'race7'] = 'Black'
+    result.loc[result['race_preds_fair_7'] == 2, 'race7'] = 'Latino_Hispanic'
+    result.loc[result['race_preds_fair_7'] == 3, 'race7'] = 'East Asian'
+    result.loc[result['race_preds_fair_7'] == 4, 'race7'] = 'Southeast Asian'
+    result.loc[result['race_preds_fair_7'] == 5, 'race7'] = 'Indian'
+    result.loc[result['race_preds_fair_7'] == 6, 'race7'] = 'Middle Eastern'
 
     # race fair 4
     if 'race4' not in result.columns:
@@ -280,17 +287,17 @@ def ensure_dir(directory):
         os.makedirs(directory)
 
 if __name__ == "__main__":
-    #Please create a csv with one column 'img_path', contains the full paths of all images to be analyzed.
+    #Please create a csv with one column 'Image Paths', contains the full paths of all images to be analyzed.
     #Also please change working directory to this file.
     parser = argparse.ArgumentParser()
     parser.add_argument('--csv', dest='input_csv', action='store',
-                        help='csv file of image path where col name for image path is "img_path')
+                        help='csv file of image path where col name for image path is "Image Paths')
     dlib.DLIB_USE_CUDA = True
     print("using CUDA?: %s" % dlib.DLIB_USE_CUDA)
     args = parser.parse_args()
     SAVE_DETECTED_AT = "detected_faces"
     ensure_dir(SAVE_DETECTED_AT)
-    imgs = pd.read_csv(args.input_csv)['img_path']
+    imgs = pd.read_csv(args.input_csv)['Image Paths']
     detect_face(imgs, SAVE_DETECTED_AT)
     print("detected faces are saved at ", SAVE_DETECTED_AT)
     #Please change test_outputs.csv to actual name of output csv. 
@@ -301,5 +308,6 @@ if __name__ == "__main__":
 
     DATASET_NAME = "LFWA+-20240116T133707Z-001"
     output_filename = "FairFace_analysis_results.xlsx"
+    image_sampling_rate = 0.7
 
-    predidct_age_gender_race("Results/" + output_filename, imgs, DATASET_NAME, SAVE_DETECTED_AT)
+    predidct_age_gender_race("Results/" + output_filename, imgs, image_sampling_rate, DATASET_NAME, SAVE_DETECTED_AT)

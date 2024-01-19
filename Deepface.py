@@ -11,9 +11,6 @@ def iterate_images(img_file_paths, dataset_name, image_sampling_rate, backend = 
     df = pd.read_csv(img_file_paths)
     all_images = df['Image Paths'].tolist()
 
-
-    # all_images = [image_name for image_name in os.listdir(dataset_path) if image_name.lower().endswith(('.png', '.jpg', '.jpeg'))]
-
     # Determine the number of images to sample based on the rate
     num_images_to_sample = int(len(all_images) * image_sampling_rate)
 
@@ -36,7 +33,6 @@ def iterate_images(img_file_paths, dataset_name, image_sampling_rate, backend = 
 
             # Extract the dominant gender
             dominant_gender = max(gender, key=gender.get)
-
 
             results_list.append({
                 'Path': rel_path,
@@ -94,11 +90,10 @@ backends = [
   'fastmtcnn',
 ]
 
-
-img_file_paths = "File_paths/file_paths.csv"
-output_filename = "DeepFace_analysis_results.xlsx"
-dataset_name = 'subjects_0-1999_72_imgs'
-image_sampling_rate = 0.7
+img_file_paths = "File_paths/file_paths_UTKface_part1.csv"
+output_filename = "DeepFace_analysis_results_UTKface_part1_0.3_sampling_opencv.xlsx"
+dataset_name = 'UTKface_part1'
+image_sampling_rate = 0.3
 
 # Run the analysis and save results to Excel
 extract_attributes(img_file_paths, output_filename, image_sampling_rate, dataset_name, backend = backends[0])

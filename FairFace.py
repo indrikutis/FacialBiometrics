@@ -88,13 +88,10 @@ def detect_face(image_paths,  SAVE_DETECTED_AT, default_max_size=800,size = 300,
 
 def predidct_age_gender_race(save_prediction_at, imgs, image_sampling_rate, dataset_name, imgs_path = 'cropped_faces/'):
 
-    # Determine the number of images to sample based on the rate
-    num_images_to_sample = int(len(imgs) * image_sampling_rate)
+    sampled_images = imgs.sample(frac=image_sampling_rate, random_state=42)
+    imgs = sampled_images
 
-    # Randomly select images to analyze
-    sampled_images = random.sample(imgs, num_images_to_sample)
-
-    img_names = [os.path.join(imgs_path, x) for x in os.listdir(imgs_path)]
+    img_names = sampled_images.values
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     model_fair_7 = torchvision.models.resnet34(pretrained=True)
@@ -134,12 +131,12 @@ def predidct_age_gender_race(save_prediction_at, imgs, image_sampling_rate, data
             print("Predicting... {}/{}".format(index, len(img_names)))
 
         face_names.append(img_name)
-
-
+        # print(img_name)
         img_base_name = os.path.basename(img_name)
-        original_img_name_parts = img_base_name.split('_face')
-        original_img_name = "_face".join(original_img_name_parts[:-1]) + os.path.splitext(img_base_name)[-1]
-        original_img_names.append(original_img_name)
+        original_img_names.append(img_base_name)
+        # original_img_name_parts = img_base_name.split('_face')
+        # original_img_name = "_face".join(original_img_name_parts[:-1]) + os.path.splitext(img_base_name)[-1]
+        # original_img_names.append(original_img_name)
         # print("Original Image Name:", original_img_name)
         # print(imgs.values)
         matching_paths = [path for path in imgs.values if dataset_name in path and original_img_name in path]
@@ -274,10 +271,12 @@ def predidct_age_gender_race(save_prediction_at, imgs, image_sampling_rate, data
     result.loc[result['age_preds_fair'] == 7, 'age_group'] = '60-69'
     result.loc[result['age_preds_fair'] == 8, 'age_group'] = '70+'
 
+    #print(result.columns)
+
     result[['path','dataset_name','image_name','face_name_align',
-            'race', 'race4',
+            'race7', 'race4',
             'gender', 'age_group',
-            'race_scores_fair', 'race_scores_fair_4',
+            'race_scores_fair_7', 'race_scores_fair_4',
             'gender_scores_fair', 'age_scores_fair']].to_excel(save_prediction_at, index=False)
 
     print("saved results at ", save_prediction_at)
@@ -289,16 +288,22 @@ def ensure_dir(directory):
 if __name__ == "__main__":
     #Please create a csv with one column 'Image Paths', contains the full paths of all images to be analyzed.
     #Also please change working directory to this file.
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--csv', dest='input_csv', action='store',
-                        help='csv file of image path where col name for image path is "Image Paths')
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--csv', dest='input_csv', action='store',
+    #                     help='csv file of image path where col name for image path is "Image Paths')
     dlib.DLIB_USE_CUDA = True
     print("using CUDA?: %s" % dlib.DLIB_USE_CUDA)
-    args = parser.parse_args()
+    # args = parser.parse_args()
     SAVE_DETECTED_AT = "detected_faces"
     ensure_dir(SAVE_DETECTED_AT)
-    imgs = pd.read_csv(args.input_csv)['Image Paths']
-    detect_face(imgs, SAVE_DETECTED_AT)
+
+    input_csv = "File_paths/file_paths_UTKface_part1.csv"
+    DATASET_NAME = "UTKFace"
+    output_filename = "FairFace_analysis_results_UTKFace2.xlsx"
+    image_sampling_rate = 0.3
+
+    imgs = pd.read_csv(input_csv)['Image Paths']
+    #detect_face(imgs, SAVE_DETECTED_AT)
     print("detected faces are saved at ", SAVE_DETECTED_AT)
     #Please change test_outputs.csv to actual name of output csv. 
 
@@ -306,8 +311,5 @@ if __name__ == "__main__":
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
 
-    DATASET_NAME = "LFWA+-20240116T133707Z-001"
-    output_filename = "FairFace_analysis_results.xlsx"
-    image_sampling_rate = 0.7
 
     predidct_age_gender_race("Results/" + output_filename, imgs, image_sampling_rate, DATASET_NAME, SAVE_DETECTED_AT)

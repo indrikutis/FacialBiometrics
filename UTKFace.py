@@ -88,7 +88,7 @@ if __name__ == "__main__":
         os.makedirs(results_folder)
 
     # Set the path to your dataset
-    dataset_path = "C:/INDRES/DTU/Semester 3/Special course/Datasets/UTKface/part1/"
+    dataset_path = "/zhome/15/a/181503/Indre/Special_course/Datasets/UTKface_part1/"
 
     # Process the dataset
     dataset_df = process_dataset(dataset_path)

@@ -131,12 +131,12 @@ def predidct_age_gender_race(save_prediction_at, imgs, image_sampling_rate, data
             print("Predicting... {}/{}".format(index, len(img_names)))
 
         face_names.append(img_name)
-
-
+        # print(img_name)
         img_base_name = os.path.basename(img_name)
-        original_img_name_parts = img_base_name.split('_face')
-        original_img_name = "_face".join(original_img_name_parts[:-1]) + os.path.splitext(img_base_name)[-1]
-        original_img_names.append(original_img_name)
+        original_img_names.append(img_base_name)
+        # original_img_name_parts = img_base_name.split('_face')
+        # original_img_name = "_face".join(original_img_name_parts[:-1]) + os.path.splitext(img_base_name)[-1]
+        # original_img_names.append(original_img_name)
         # print("Original Image Name:", original_img_name)
         # print(imgs.values)
         matching_paths = [path for path in imgs.values if dataset_name in path and original_img_name in path]
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     image_sampling_rate = 0.3
 
     imgs = pd.read_csv(input_csv)['Image Paths']
-    detect_face(imgs, SAVE_DETECTED_AT)
+    #detect_face(imgs, SAVE_DETECTED_AT)
     print("detected faces are saved at ", SAVE_DETECTED_AT)
     #Please change test_outputs.csv to actual name of output csv. 
 

@@ -131,15 +131,10 @@ def predidct_age_gender_race(save_prediction_at, imgs, image_sampling_rate, data
             print("Predicting... {}/{}".format(index, len(img_names)))
 
         face_names.append(img_name)
-        # print(img_name)
         img_base_name = os.path.basename(img_name)
         original_img_names.append(img_base_name)
-        # original_img_name_parts = img_base_name.split('_face')
-        # original_img_name = "_face".join(original_img_name_parts[:-1]) + os.path.splitext(img_base_name)[-1]
-        # original_img_names.append(original_img_name)
-        # print("Original Image Name:", original_img_name)
-        # print(imgs.values)
-        matching_paths = [path for path in imgs.values if dataset_name in path and original_img_name in path]
+
+        matching_paths = [path for path in imgs.values if dataset_name in path and img_base_name in path]
 
         cropped_paths = []
         for path in matching_paths:
@@ -294,12 +289,12 @@ if __name__ == "__main__":
     dlib.DLIB_USE_CUDA = True
     print("using CUDA?: %s" % dlib.DLIB_USE_CUDA)
     # args = parser.parse_args()
-    SAVE_DETECTED_AT = "detected_faces"
+    SAVE_DETECTED_AT = "detected_faces_FGNET"
     ensure_dir(SAVE_DETECTED_AT)
 
-    input_csv = "File_paths/file_paths_UTKface_part1.csv"
-    DATASET_NAME = "UTKFace"
-    output_filename = "FairFace_analysis_results_UTKFace2.xlsx"
+    input_csv = "File_paths/file_paths_FGNET.csv"
+    DATASET_NAME = "FGNET"
+    output_filename = "FairFace_analysis_results_FGNET.xlsx"
     image_sampling_rate = 0.3
 
     imgs = pd.read_csv(input_csv)['Image Paths']

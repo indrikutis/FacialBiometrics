@@ -83,7 +83,7 @@ def save_to_excel(dataframe, output_path):
 
 if __name__ == "__main__":
 
-    results_folder = "UTKFace"
+    results_folder = "Dataset_info"
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     dataset_df = process_dataset(dataset_path)
 
     # Set the output Excel file path
-    output_excel_path = "UTKFace/UTKFace_dataset_info.xlsx"
+    output_excel_path = "Dataset_info/UTKFace_dataset_info.xlsx"
 
     # Save the DataFrame to Excel
     save_to_excel(dataset_df, output_excel_path)

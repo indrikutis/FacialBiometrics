@@ -12,7 +12,7 @@ def convert_race_label(race_label):
     else:
         return 'Others'
 
-def convert_race4_label(race_label):
+def convert_gender_label(race_label):
     gender_mapping = {'Man': 'Male', 'Woman': 'Female'}
     return gender_mapping.get(race_label, 'Other')
 
@@ -25,10 +25,14 @@ def create_merged_df(tool_results, dataset, tool, merged_df_name):
 
     if (tool).lower() == 'deepface':
 
-        if 'Gender' in dataset.columns:
+        
+        # tool_results['race4'] = tool_results['race4'].apply(convert_race4_label)
+        if 'Gender' in tool_results.columns:
             # Convert DeepFace gender labels to UTKFace gender labels
             tool_results['Gender'] = tool_results['Gender'].apply(convert_gender_label)
 
+        if 'Race' in tool_results.columns:
+            tool_results['Race'] = tool_results['Race'].apply(convert_race_label)
 
         if 'Image name' in tool_results.columns and 'image_name' in dataset.columns:
             merged_df = pd.merge(tool_results, dataset, how='inner', left_on='Image name', right_on='image_name')
@@ -40,10 +44,22 @@ def create_merged_df(tool_results, dataset, tool, merged_df_name):
 
     else:
         # Convert DeepFace race labels to UTKFace race labels
-        tool_results['race4'] = tool_results['race4'].apply(convert_race4_label)
+        # tool_results['race4'] = tool_results['race4'].apply(convert_race4_label)
+        # tool_results[['predicted_age_lower', 'predicted_age_upper']] = tool_results['age_group'].apply(lambda x: extract_age_bounds(x, 0)).apply(pd.Series)
+        bounds_series = tool_results['age_group'].apply(lambda x: extract_age_bounds(x, 0)).apply(pd.Series)
+
+        # Rename the columns
+        bounds_series.columns = ['predicted_age_lower', 'predicted_age_upper']
+        # Concatenate the new columns to the original DataFrame
+        tool_results = pd.concat([tool_results.iloc[:, :tool_results.columns.get_loc('age_group')],
+                            bounds_series,
+                            tool_results.iloc[:, tool_results.columns.get_loc('age_group')+1:]],
+                        axis=1)
+
 
         merged_df = pd.merge(tool_results, dataset, how='inner', left_on='image_name', right_on='image_name')
         merged_df = merged_df[merged_df['Notes'].isna()]
+
 
     results_folder = "Tool analysis"
     if not os.path.exists(results_folder):
@@ -89,7 +105,7 @@ def calculate_accuracy_FGNET(merged_df, age_range, tool):
         # No need to calculate gender accuracy
         
         # Extract lower and upper bounds from the predicted age range
-        merged_df[['predicted_age_lower', 'predicted_age_upper']] = merged_df['age_group'].apply(lambda x: extract_age_bounds(x, 0)).apply(pd.Series)
+        # merged_df[['predicted_age_lower', 'predicted_age_upper']] = merged_df['age_group'].apply(lambda x: extract_age_bounds(x, 0)).apply(pd.Series)
 
         # Check if the true age falls within the predicted range
         age_accuracy_range = (
@@ -101,13 +117,14 @@ def calculate_accuracy_FGNET(merged_df, age_range, tool):
         age_accuracy = age_accuracy_range.mean()
         age_error_rate = 1 - age_accuracy
 
-        merged_df[['predicted_age_lower', 'predicted_age_upper']] = merged_df['age_group'].apply(lambda x: extract_age_bounds(x, int(age_range/2))).apply(pd.Series)
+        # merged_df[['predicted_age_lower', 'predicted_age_upper']] = merged_df['age_group'].apply(lambda x: extract_age_bounds(x, int(age_range/2))).apply(pd.Series)
 
         # Check if the true age falls within the predicted range
         age_accuracy_range = (
-            (merged_df['age'] >= merged_df['predicted_age_lower']) &
-            (merged_df['age'] <= merged_df['predicted_age_upper'])
+            (merged_df['age'] >= merged_df['predicted_age_lower'] - int(age_range/2)) &
+            (merged_df['age'] <= merged_df['predicted_age_upper'] + int(age_range/2))
         )
+
 
         # Calculate accuracy within the predicted range
         age_accuracy_within_range = age_accuracy_range.mean()
@@ -144,9 +161,6 @@ def calculate_accuracy(merged_df, age_range, tool):
 
         gender_accuracy = (merged_df['gender_x'] == merged_df['gender_y']).mean()
         gender_error_rate = 1 - gender_accuracy
-        
-        # Extract lower and upper bounds from the predicted age range
-        merged_df[['predicted_age_lower', 'predicted_age_upper']] = merged_df['age_group'].apply(lambda x: extract_age_bounds(x, 0)).apply(pd.Series)
 
         # Check if the true age falls within the predicted range
         age_accuracy_range = (
@@ -158,12 +172,10 @@ def calculate_accuracy(merged_df, age_range, tool):
         age_accuracy = age_accuracy_range.mean()
         age_error_rate = 1 - age_accuracy
 
-        merged_df[['predicted_age_lower', 'predicted_age_upper']] = merged_df['age_group'].apply(lambda x: extract_age_bounds(x, int(age_range/2))).apply(pd.Series)
-
         # Check if the true age falls within the predicted range
         age_accuracy_range = (
-            (merged_df['age'] >= merged_df['predicted_age_lower']) &
-            (merged_df['age'] <= merged_df['predicted_age_upper'])
+            (merged_df['age'] >= merged_df['predicted_age_lower'] - int(age_range/2)) &
+            (merged_df['age'] <= merged_df['predicted_age_upper'] + int(age_range/2))
         )
 
         # Calculate accuracy within the predicted range
@@ -196,21 +208,49 @@ def demographic_distribution(merged_df):
     print(demographic_distribution)
     print('\n')
 
+def model_predictions_by_race(merged_df, tool, age_range):
 
-def model_predictions_by_race(merged_df, tool):
+    # gender_accuracy = (merged_df['Race'] == merged_df['race']).mean()
+    # print(gender_accuracy)
     groups = merged_df['race'].unique()
 
     for group in groups:
         group_data = merged_df[merged_df['race'] == group]
 
         if (tool).lower() == 'deepface':
-            accuracy = (group_data['Gender'] == group_data['gender']).mean()
+            gender_accuracy = (group_data['Gender'] == group_data['gender']).mean()
+            age_accuracy = (group_data['Age'] == group_data['age']).mean()
+            age_accuracy_within_range = (abs(group_data['Age'] - group_data['age']) <= age_range).mean()
+            ethnicity_accuracy = (group_data['Race'] == group_data['race']).mean()
 
         else:
-            accuracy = (group_data['gender_x'] == group_data['gender_y']).mean()
+            gender_accuracy = (group_data['gender_x'] == group_data['gender_y']).mean()
+            age_accuracy_range = (
+                (group_data['age'] >= group_data['predicted_age_lower']) &
+                (group_data['age'] <= group_data['predicted_age_upper'])
+            )
 
+            # Calculate accuracy within the predicted range
+            age_accuracy = age_accuracy_range.mean()
 
-        print(f"Accuracy for {group}: {accuracy * 100:.2f}%")
+            # Check if the true age falls within the predicted range
+            age_accuracy_range = (
+                (group_data['age'] >= group_data['predicted_age_lower'] - int(age_range/2)) &
+                (group_data['age'] <= group_data['predicted_age_upper'] + int(age_range/2))
+            )
+
+            # Calculate accuracy within the predicted range
+            age_accuracy_within_range = age_accuracy_range.mean()
+            
+
+            ethnicity_accuracy = (group_data['race4'] == group_data['race']).mean()
+
+        print("Number of subjects: ", len(group_data))
+        print(f"Gender accuracy for {group}: {gender_accuracy * 100:.2f}%")
+        print(f"Age accuracy for {group}: {age_accuracy * 100:.2f}%")
+        print(f"Age accuracy within {age_range} years for {group}: {age_accuracy_within_range * 100:.2f}%")
+        print(f"Race accuracy for {group}: {ethnicity_accuracy * 100:.2f}%")
+        print("-----------------")
     print('\n')
 
 def analyse_confusion_matrix(merged_df, tool):
@@ -218,7 +258,7 @@ def analyse_confusion_matrix(merged_df, tool):
 
     for group in groups:
         group_data = merged_df[merged_df['race'] == group]
-
+        
         if tool.lower() == 'deepface':
             y_true = group_data['gender']
             y_pred = group_data['Gender']
@@ -241,19 +281,42 @@ def analyse_confusion_matrix(merged_df, tool):
         report = classification_report(y_true, y_pred)
         print(f"Classification Report for {group}:\n{report}")
 
+def read_excel_to_dataframe(file_path, sheet_name=0):
+    """
+    Reads an Excel file and returns a DataFrame.
+
+    Parameters:
+    - file_path (str): The path to the Excel file.
+    - sheet_name (str or int, default 0): The sheet to read. You can specify the sheet name or index.
+
+    Returns:
+    - pd.DataFrame: A DataFrame containing the data from the Excel file.
+    """
+    try:
+        # Read Excel file into a DataFrame
+        df = pd.read_excel(file_path, sheet_name=sheet_name)
+        return df
+    except Exception as e:
+        print(f"Error reading Excel file: {e}")
+        return None
+
+
 
 # Load the DeepFace results and UTKFace datasets
-analysis_results = pd.read_excel("Results/FairFace_analysis_results_FGNET.xlsx")
-dataset_info = pd.read_excel("Dataset_info/FGNET_dataset_info.xlsx")
-merged_df_name = "FGNET_FairFace_merged_results.xlsx"
+analysis_results = pd.read_excel("Results/FairFace_analysis_results_UTKFace_all.xlsx")
+dataset_info = pd.read_excel("Dataset_info/UTKFace_dataset_info.xlsx")
+merged_df_name = "UTKFace_FairFace_merged_results_1.xlsx"
+
+# merged_df_name = "UTKface_part1_0.3_sampling_FairFace_merged_results.xlsx"
 age_range = 5
 tool = 'FairFace'
 
 merged_df = create_merged_df(analysis_results, dataset_info, tool, merged_df_name)
+# merged_df = read_excel_to_dataframe("Tool analysis/" + merged_df_name)
 
-# calculate_accuracy(merged_df, age_range, tool)
-calculate_accuracy_FGNET(merged_df, age_range, tool)
+calculate_accuracy(merged_df, age_range, tool)
+# calculate_accuracy_FGNET(merged_df, age_range, tool)
 
-# demographic_distribution(merged_df)
-# model_predictions_by_race(merged_df, tool)
+demographic_distribution(merged_df)
+model_predictions_by_race(merged_df, tool, age_range)
 # analyse_confusion_matrix(merged_df, tool)

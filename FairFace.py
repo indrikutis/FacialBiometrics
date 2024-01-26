@@ -294,8 +294,8 @@ if __name__ == "__main__":
 
     input_csv = "File_paths/file_paths_FGNET.csv"
     DATASET_NAME = "FGNET"
-    output_filename = "FairFace_analysis_results_FGNET.xlsx"
-    image_sampling_rate = 0.3
+    output_filename = "FairFace_analysis_results_1_FGNET.xlsx"
+    image_sampling_rate = 1
 
     imgs = pd.read_csv(input_csv)['Image Paths']
     #detect_face(imgs, SAVE_DETECTED_AT)

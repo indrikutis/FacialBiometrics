@@ -91,9 +91,9 @@ backends = [
 ]
 
 img_file_paths = "File_paths/file_paths_FGNET.csv"
-output_filename = "DeepFace_analysis_results_FGNET_1_sampling.xlsx"
-dataset_name = 'FGNET'
-image_sampling_rate = 1
+output_filename = "DeepFace_analysis_results_FGNET_0.3_sampling.xlsx"
+dataset_name = 'DeepFace'
+image_sampling_rate = 0.3
 
 # Run the analysis and save results to Excel
 extract_attributes(img_file_paths, output_filename, image_sampling_rate, dataset_name, backend = backends[0])

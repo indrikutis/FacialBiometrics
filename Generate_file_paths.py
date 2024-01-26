@@ -36,8 +36,8 @@ results_folder = "File_paths"
 if not os.path.exists(results_folder):
     os.makedirs(results_folder)
 
-root_directory_path = '/zhome/15/a/181503/Indre/Special_course/Datasets/FGNET/images/'
-csv_filename = results_folder + '/file_paths_FGNET.csv'
+root_directory_path = '/zhome/15/a/181503/Indre/Special_course/Datasets/part1/'
+csv_filename = results_folder + '/file_paths_UTKFace_part1.csv'
 
 absolute_paths = get_image_paths(root_directory_path)
 write_to_csv(absolute_paths, csv_filename)

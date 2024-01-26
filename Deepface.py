@@ -90,9 +90,9 @@ backends = [
   'fastmtcnn',
 ]
 
-img_file_paths = "File_paths/file_paths_UTKface_part1.csv"
-output_filename = "DeepFace_analysis_results_UTKface_part1_0.3_sampling_opencv.xlsx"
-dataset_name = 'UTKface_part1'
+img_file_paths = "File_paths/file_paths_FGNET.csv"
+output_filename = "DeepFace_analysis_results_FGNET_0.3_sampling.xlsx"
+dataset_name = 'DeepFace'
 image_sampling_rate = 0.3
 
 # Run the analysis and save results to Excel

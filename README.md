@@ -15,6 +15,8 @@ Input: directory path
 
 ## DeepFace: ##
 
+GitHub link to the repository: https://github.com/serengil/deepface
+
 ### Input: ### 
 1. img_file_paths: "File_paths/file_paths.csv"
 2. output_filename = "DeepFace_analysis_results.xlsx"
@@ -39,6 +41,8 @@ Input: directory path
 9. fastmtcnn
 
 ## FairFace:
+
+GitHub link to the repository: https://github.com/dchen236/FairFace
 
 The model extracts aligned faces from the image and saves to detected_faces folder. 
 

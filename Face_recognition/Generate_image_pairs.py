@@ -20,10 +20,12 @@ def write_to_csv(image_pairs, image_paths, csv_file, folder_name):
         csv_writer.writerow(['image1', 'image2'])
         csv_writer.writerows(image_pairs)
 
-    # Save paths to all images used
-    with open(folder_name + '/all_image_paths.txt', 'w') as file:
+    with open(folder_name + '/all_image_paths.csv', 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(['image_path'])  # Write header
+
         for image_path_list in image_paths:
-            file.write('\n'.join(image_path_list) + '\n')
+            csv_writer.writerows([[image_path] for image_path in image_path_list])
 
 def generate_and_write_image_pairs(root_folder, csv_file_path, folder_name):
     # Get image paths grouped by folder (person)
@@ -44,7 +46,7 @@ def generate_and_write_image_pairs(root_folder, csv_file_path, folder_name):
     print(f"Image pairs and paths written to: {csv_file_path} and all_image_paths.txt")
 
 # Specify the root folder of your dataset
-root_folder = "/zhome/15/a/181503/Indre/Special_course/Datasets/lfw"
+root_folder = "C:/INDRES/DTU/Semester 3/Special course/Datasets/lfw"
 
 folder_name = "Face_recognition_results"
 csv_file_path = "image_pairs_lfw.csv"

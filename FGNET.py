@@ -1,5 +1,8 @@
 import os
 import pandas as pd
+import csv
+from itertools import combinations
+
 
 def extract_age_from_filename(filename):
     try:
@@ -49,16 +52,93 @@ def process_age_dataset(dataset_path):
 def save_to_excel(dataframe, output_path):
     dataframe.to_excel(output_path, index=False)
 
-if __name__ == "__main__":
+
+def generate_dataset_info(dataset_path, output_excel_path):
     results_folder = "Dataset_info"
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
 
-    dataset_path = "/zhome/15/a/181503/Indre/Special_course/Datasets/FGNET/images/"
     age_dataset_df = process_age_dataset(dataset_path)
-    output_excel_path = "Dataset_info/FGNET_dataset_info.xlsx"
 
     # Save the DataFrame to Excel
     save_to_excel(age_dataset_df, output_excel_path)
 
     print(f"Age dataset information saved to {output_excel_path}")
+
+
+# def get_pairs(dataset_path):
+
+
+def get_image_paths(dataset_path):
+    image_paths = []
+    for root, dirs, files in os.walk(dataset_path):
+        image_files = [file for file in files if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        folder_image_paths = [os.path.join(root, file) for file in image_files]
+        image_paths.extend(folder_image_paths)
+    return image_paths
+
+def get_image_pairs(image_paths):
+    image_pairs = list(combinations(image_paths, 2))
+    return image_pairs
+
+def write_to_csv(image_pairs, csv_file):
+    folder_name = "Face_recognition_results"
+    with open(folder_name + "/" + csv_file, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(['image1', 'image2'])
+        csv_writer.writerows(image_pairs)
+
+
+def generate_image_pairs(dataset_path, output_excel_path):
+
+    # results_folder = "Face_recognition_results"
+    # if not os.path.exists(results_folder):
+    #     os.makedirs(results_folder)
+
+    # age_dataset_df = get_pairs(dataset_path)
+
+    # # Save the DataFrame to Excel
+    # save_to_excel(age_dataset_df, results_folder + "/" +output_excel_path)
+
+    # print(f"Age dataset information saved to {output_excel_path}")
+
+        # Get image paths from the dataset
+    image_paths = get_image_paths(dataset_path)
+
+    # Extract subject ID from the first 3 characters of the file name
+    subject_ids = [os.path.basename(image)[:3] for image in image_paths]
+
+    # Filter images with the same subject ID
+    unique_subject_ids = set(subject_ids)
+    subject_image_paths = {subject_id: [] for subject_id in unique_subject_ids}
+
+    for subject_id, image_path in zip(subject_ids, image_paths):
+        subject_image_paths[subject_id].append(image_path)
+
+    # Generate pairs of image paths for each subject
+    all_image_pairs = []
+    for subject_paths in subject_image_paths.values():
+        image_pairs = get_image_pairs(subject_paths)
+        all_image_pairs.extend(image_pairs)
+
+    # Write image pairs to CSV file
+    write_to_csv(all_image_pairs, output_excel_path)
+
+    # Display the path to the generated CSV file
+    print(f"Image pairs written to: {output_excel_path}")
+
+if __name__ == "__main__":
+    
+    # Generate dataset information
+
+    # dataset_path = "C:\INDRES\DTU\Semester 3\Special course\Datasets\FGNET\FGNET\images"
+    # output_excel_path = "Dataset_info/FGNET_dataset_info.xlsx"
+    # generate_dataset_info(dataset_path, output_excel_path)
+
+    # Generate image pairs
+
+    dataset_path = "C:\INDRES\DTU\Semester 3\Special course\Datasets\FGNET\FGNET\images"
+    output_excel_path = "FGNET_image_pairs.csv"
+    generate_image_pairs(dataset_path, output_excel_path)
+
+

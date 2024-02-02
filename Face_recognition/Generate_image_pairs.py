@@ -46,10 +46,10 @@ def generate_and_write_image_pairs(root_folder, csv_file_path, folder_name):
     print(f"Image pairs and paths written to: {csv_file_path} and all_image_paths.txt")
 
 # Specify the root folder of your dataset
-root_folder = "C:/INDRES/DTU/Semester 3/Special course/Datasets/lfw"
+root_folder = "C:/INDRES/DTU/Semester 3/Special course/Datasets/lfw_subset"
 
 folder_name = "Face_recognition_results"
-csv_file_path = "image_pairs_lfw.csv"
+csv_file_path = "image_pairs_lfw_subset.csv"
 
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)

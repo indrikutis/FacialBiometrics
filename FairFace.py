@@ -289,12 +289,12 @@ if __name__ == "__main__":
     dlib.DLIB_USE_CUDA = True
     print("using CUDA?: %s" % dlib.DLIB_USE_CUDA)
     # args = parser.parse_args()
-    SAVE_DETECTED_AT = "detected_faces_FGNET"
+    SAVE_DETECTED_AT = "detected_faces_lwf"
     ensure_dir(SAVE_DETECTED_AT)
 
-    input_csv = "File_paths/file_paths_FGNET.csv"
-    DATASET_NAME = "FGNET"
-    output_filename = "FairFace_analysis_results_1_FGNET.xlsx"
+    input_csv = "File_paths/lfw_all_subset_photos.csv"
+    DATASET_NAME = "lfw_all_subset_photos"
+    output_filename = "FairFace_analysis_results_1_lfw_all_subset_photos_new.xlsx"
     image_sampling_rate = 1
 
     imgs = pd.read_csv(input_csv)['Image Paths']

@@ -44,13 +44,13 @@ def verification():
 
     # Load image pairs from CSV
     root_folder = "Face_recognition_results/"
-    csv_file_path = root_folder + "FGNET_image_pairs.csv"  # Replace with your CSV file path
+    csv_file_path = root_folder + "image_pairs_lfw_subset.csv"  # Replace with your CSV file path
     image_pairs_df = pd.read_csv(csv_file_path)
 
     sampling_rate = 1
 
     # Write results to Excel file
-    excel_file_path = root_folder + "verification_results_FGNET_1_sampling.csv"  # Replace with your desired Excel file path
+    excel_file_path = root_folder + "verification_results_lfw_subset_1_sampling.csv"  # Replace with your desired Excel file path
     # Perform verification for each pair
 
     models = [
@@ -125,7 +125,7 @@ def verification_accuracy_lfw(csv_file_path):
 if __name__ == "__main__":
 
 
-    # verification()
+    verification()
 
     # csv_file_path = "Face_recognition_results/verification_results_FGNET_1_sampling.csv"
     # verification_accuracy_FGNET(csv_file_path, 0)
@@ -139,8 +139,8 @@ if __name__ == "__main__":
     # verification_accuracy_FGNET(csv_file_path, 60)
     # verification_accuracy_FGNET(csv_file_path, 200)
 
-    csv_file_path = "Face_recognition_results/verification_results_lfw_0.3_sampling.csv"
-    verification_accuracy_lfw(csv_file_path)
+    # csv_file_path = "Face_recognition_results/verification_results_lfw_0.3_sampling.csv"
+    # verification_accuracy_lfw(csv_file_path)
 
 
     

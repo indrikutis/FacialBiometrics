@@ -226,9 +226,9 @@ if __name__ == "__main__":
 
     # calculate_face_recognition_accuracy(output_csv_path, accuracy_csv_path, 0.7)
 
-    accuracy_csv_path = "Face_recognition_results/face_recognition_accuracy_FGNET_cos_0.5_age_20.csv"
+    accuracy_csv_path = "Face_recognition_results/face_recognition_accuracy_FGNET_cos_0.7_None_age.csv"
 
 
-    calculate_face_recognition_accuracy(output_csv_path, accuracy_csv_path, cosine_threshold=0.5, age_threshold=20)
+    calculate_face_recognition_accuracy(output_csv_path, accuracy_csv_path, cosine_threshold=0.7, age_threshold=200)
 
     

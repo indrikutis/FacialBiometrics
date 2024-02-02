@@ -7,18 +7,25 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torchvision
-from torchvision import datasets, models, transforms
+from torchvision import  transforms
 import dlib
 import os
-import argparse
-from PIL import Image
-import random
+
 
 def extract_relative_paths(imgs, dataset_name):
+    """Extracts the relative paths of images from the dataset folder
+
+    Args:
+        imgs (list): List of absolute paths to images
+        dataset_name (str): The name of the dataset
+
+    Returns:
+        list: List of relative paths of images from the dataset folder
+    """
+
     relative_paths = []
 
     for img_path in imgs:
-        # Get the relative path of the image from the dataset folder
         rel_path = os.path.relpath(img_path, dataset_name)
         
         # Replace backslashes with forward slashes (for compatibility on Windows)
@@ -28,17 +35,7 @@ def extract_relative_paths(imgs, dataset_name):
 
     return relative_paths
 
-
-def rect_to_bb(rect):
-	# take a bounding predicted by dlib and convert it
-	# to the format (x, y, w, h) as we would normally do
-	# with OpenCV
-	x = rect.left()
-	y = rect.top()
-	w = rect.right() - x
-	h = rect.bottom() - y
-	# return a tuple of (x, y, w, h)
-	return (x, y, w, h)
+# NOTE: Functions taken from Fairface github
 
 def detect_face(image_paths,  SAVE_DETECTED_AT, default_max_size=800,size = 300, padding = 0.25):
     cnn_face_detector = dlib.cnn_face_detection_model_v1('dlib_models/mmod_human_face_detector.dat')
@@ -59,30 +56,22 @@ def detect_face(image_paths,  SAVE_DETECTED_AT, default_max_size=800,size = 300,
             new_width, new_height =  int(default_max_size * old_width / old_height), default_max_size
         img = dlib.resize_image(img, rows=new_height, cols=new_width)
 
-        # Display the resized image using PIL
-        # pil_img = Image.fromarray(img)
-        # pil_img.show()
-
         dets = cnn_face_detector(img, 1)
         num_faces = len(dets)
         if num_faces == 0:
             print("Sorry, there were no faces found in '{}'".format(image_path))
             continue
+
         # Find the 5 face landmarks we need to do the alignment.
         faces = dlib.full_object_detections()
         for detection in dets:
             rect = detection.rect
             faces.append(sp(img, rect))
         images = dlib.get_face_chips(img, faces, size=size, padding = padding)
-        # print("Number of faces detected: {}".format(len(images)))
         for idx, image in enumerate(images):
             img_name = os.path.basename(image_path)  # Extracting filename from the path
             base_name, ext = os.path.splitext(img_name)
             face_name = os.path.join(SAVE_DETECTED_AT, base_name + "_face" + str(idx) + ext)
-
-            # print('img_name', img_name)
-            # print('face_name', face_name)
-            # print("Saving Face No. {} at {}".format(idx, face_name))
 
             dlib.save_image(image, face_name)
 
@@ -281,6 +270,7 @@ def ensure_dir(directory):
         os.makedirs(directory)
 
 if __name__ == "__main__":
+
     #Please create a csv with one column 'Image Paths', contains the full paths of all images to be analyzed.
     #Also please change working directory to this file.
     # parser = argparse.ArgumentParser()
@@ -289,22 +279,20 @@ if __name__ == "__main__":
     dlib.DLIB_USE_CUDA = True
     print("using CUDA?: %s" % dlib.DLIB_USE_CUDA)
     # args = parser.parse_args()
-    SAVE_DETECTED_AT = "detected_faces_lwf"
+    SAVE_DETECTED_AT = "detected_faces"
     ensure_dir(SAVE_DETECTED_AT)
 
     input_csv = "File_paths/lfw_all_subset_photos.csv"
     DATASET_NAME = "lfw_all_subset_photos"
-    output_filename = "FairFace_analysis_results_1_lfw_all_subset_photos_new.xlsx"
+    output_filename = "FairFace_analysis_results_1_lfw_all_subset_photos.xlsx"
     image_sampling_rate = 1
 
     imgs = pd.read_csv(input_csv)['Image Paths']
-    #detect_face(imgs, SAVE_DETECTED_AT)
+    detect_face(imgs, SAVE_DETECTED_AT)
     print("detected faces are saved at ", SAVE_DETECTED_AT)
-    #Please change test_outputs.csv to actual name of output csv. 
 
-    results_folder = "Results"
+    results_folder = "Tool_results"
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
 
-
-    predidct_age_gender_race("Results/" + output_filename, imgs, image_sampling_rate, DATASET_NAME, SAVE_DETECTED_AT)
+    predidct_age_gender_race(results_folder + "/" + output_filename, imgs, image_sampling_rate, DATASET_NAME, SAVE_DETECTED_AT)
